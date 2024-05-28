@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 # Import your script
-from .langchain_orcid2 import run as run_langchain
+from langchain_orcid2 import run as run_langchain
 
 app = Flask(__name__)
 
@@ -13,9 +13,10 @@ def invoke_script():
 
     if doi is not None:
         output = run_langchain(pdf, doi)
+    elif pdf is None and doi is not None: 
+        output = run_langchain(doi)
     else: 
         output = run_langchain(pdf)
     return jsonify({'output': output})
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
