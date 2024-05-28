@@ -153,15 +153,75 @@ def published_metadata(doi):
     pub_name = "None, Crossref Error"
     pub_date = "None, Crossref Error"
     subject = "None, Crossref Error"
+    license = "None, Crossref Error"
     authors_info = "None, no authors"
     refs = []
     url_link = "None, Crossref Error"
 
+    #%% Info from Crossref
     try:
+        r = cr.works(ids = f'{doi}')  # Crossref search using DOI, "r" for request
+    except requests.exceptions.HTTPError as e:
+        print(f"None, CrossRef DOI lookup returned error: {e}\n")
+
+    try:
+        title = r['message']['title'][0]
+    except:
+        title = f"None, Crossref Error"
+    try:
+        abstract = r['message']['abstract'][0]
+    except:
+        abstract = f"None, Crossref Error"
+    try:
+        type = r['message']['type']
+    except:
+        type = "None, Crossref Error"
+
+    try:
+        pub_name = r['message']['container-title'][0]
+    except:
+        pub_name = "None, Crossref Error"
+
+    try:
+        pub_date = r['message']['published']['date-parts'][0]
+    except:
+        pub_date = "None, Crossref Error"
+
+    try:
+        subject = r['message']['subject']
+    except:
+        subject = "None, Crossref Error"
+    try:
+        license = r['message']['license']
+    except:
+        licesnse = "None, Crossref Error"
+    
+    authors_info = []
+
+    for author in r['message']['author']:
+        full_name = author['given'] + ' ' + author['family']
+        authors_info.append(full_name)
+    
+    if authors_info:
+        authors_info = get_orcid(authors_info)
+    else: 
+        authors_info = "None"
+
+
+    refs = []
+    for i in r['message']['reference']:
+        try:
+            refs.append(i['DOI'])
+        except:
+            refs.append(f"{i['key']}, DOI not present")
+        
+    url_link = r['message']['URL']
+
+    """try:
         r = cr.works(ids=f'{doi}')  # Crossref search using DOI, "r" for request
         
         title = r['message']['title'][0]
-        abstract = r['message']['abstract'][0]
+        #abstract = r['message']['abstract'][0]
         type = r['message']['type']
         pub_name = r['message']['container-title'][0]
         pub_date = r['message']['published']['date-parts'][0]
@@ -185,7 +245,7 @@ def published_metadata(doi):
         
         url_link = r['message']['URL']
     except requests.exceptions.HTTPError as e:
-        print(f"None, CrossRef DOI lookup returned error: {e}\n")
+        print(f"None, CrossRef DOI lookup returned error: {e}\n")"""
         
     
 
@@ -244,18 +304,18 @@ def published_metadata(doi):
                 title = openalex_results['title']
             except:
                 pass
-        if "error" in type:  # attempt replacing error keywords from cross with title from openalex
+        if "error" in type:  # attempt replacing error keywords from cross with keywords from openalex
             try:
                 type = openalex_results['type']
             except:
                 pass
-        if "error" in pub_name:  # attempt replacing error keywords from cross with title from openalex
+        if "error" in pub_name:  # attempt replacing error pub-name from cross with keywords from openalex
             try:
                 pub_name = openalex_results['primary_location']
             except:
                 pass
 
-        if "error" in pub_date:  # attempt replacing error keywords from cross with title from openalex
+        if "error" in pub_date:  # attempt replacing error pubdate from cross with keywords from openalex
             try:
                 pub_date = openalex_results['publication_date']
             except:
@@ -270,8 +330,8 @@ def published_metadata(doi):
     except:
         keywords = "none"
     try:    
-        if openalex and openalex_results['open_access']['is_oa']: 
-            oa_url = openalex_results['open_access']['oa_url']
+        #if openalex and openalex_results['open_access']['is_oa']: 
+        oa_url = openalex_results['open_access']['oa_url']
     except:
         oa_url = "none"
 
