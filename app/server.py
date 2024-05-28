@@ -17,7 +17,6 @@ def invoke_script():
         output = run_langchain(doi)
     else: 
         output = run_langchain(pdf)
-    return {'output': output}
-
+    return jsonify({'output': output})
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
