@@ -35,7 +35,6 @@ import tiktoken
 
 #from ..Server.PDFDataExtractor.pdfdataextractor.demo import read_single
 sys.path.append(os.path.abspath("/Users/desot1/Dev/automating-metadata/Server/PDFDataExtractor/pdfdataextractor"))
-pyalex.config.email = "ellie@desci.com"
 
 # Load in API keys from .env file
 load_dotenv(find_dotenv())
@@ -125,7 +124,7 @@ def validate_doi(doi):
         # Handle network or other errors
         return {"is_valid": False, "message": f"Error validating DOI: {e}"}
 
-def published_metadata(doi):
+def published_metadata(doi, cremail, pyalexemail):
     """
     Create a json output file for a single paper using the inputed identifier.
     Only using a DOI string at the moment
@@ -141,7 +140,7 @@ def published_metadata(doi):
     #%% Setting up info for usage of API's
     # define crossref object
     cr = Crossref()  
-    cr.mailto = 'desotaelianna@gmail.com'
+    cr.mailto = cremail
     cr.ua_string = 'Python/Flask script for use in Desci Nodes publication information retrieval.'
 
 
@@ -216,36 +215,6 @@ def published_metadata(doi):
             refs.append(f"{i['key']}, DOI not present")
         
     url_link = r['message']['URL']
-
-    """try:
-        r = cr.works(ids=f'{doi}')  # Crossref search using DOI, "r" for request
-        
-        title = r['message']['title'][0]
-        #abstract = r['message']['abstract'][0]
-        type = r['message']['type']
-        pub_name = r['message']['container-title'][0]
-        pub_date = r['message']['published']['date-parts'][0]
-        subject = r['message']['subject']
-        subject = r['message']['license']
-
-        authors_info = []
-        for author in r['message']['author']:
-            full_name = author['given'] + ' ' + author['family']
-            authors_info.append(full_name)
-        
-        if authors_info:
-            authors_info = get_orcid(authors_info)
-        
-        refs = []
-        for i in r['message']['reference']:
-            try:
-                refs.append(i['DOI'])
-            except:
-                refs.append(f"{i['key']}, DOI not present")
-        
-        url_link = r['message']['URL']
-    except requests.exceptions.HTTPError as e:
-        print(f"None, CrossRef DOI lookup returned error: {e}\n")"""
         
     
 
@@ -289,6 +258,8 @@ def published_metadata(doi):
         openaccess_pdf = "None, Semantic Scholar lookup error"
 
     # OpenAlex accessing as backup info for the previous tools
+    pyalex.config.email = pyalexemail 
+
     openalex = True
 
     try:
@@ -302,6 +273,11 @@ def published_metadata(doi):
         if "error" in title:  # attempt replacing error title from cross with title from openalex
             try:
                 title = openalex_results['title']
+            except:
+                pass
+        if "error" in license:  # attempt replacing error title from cross with title from openalex
+            try:
+                license = openalex_results['license']
             except:
                 pass
         if "error" in type:  # attempt replacing error keywords from cross with keywords from openalex
@@ -344,6 +320,7 @@ def published_metadata(doi):
         'datePublished':pub_date,
         'keywords':keywords,
         'oa_url':oa_url,
+        'license':license
     }
     return output_dict
 
@@ -508,20 +485,20 @@ def update_json_ld(json_ld, new_data):
     return json_ld
 
 #%% Main, general case for testing
-def run(pdf=None, doi=None): 
+def run(pdf=None, doi=None, cremail=None, pyalexemail=None): 
     print("Starting code run...")
-    
+    output = None
     if doi: 
         doi_validation = validate_doi(doi)
-        published_metadata(doi)['creator']
-        if not doi_validation["is_valid"] or published_metadata(doi)['creator'] is None and pdf: 
+        #published_metadata(doi, cremail, pyalexemail)['creator']
+        if not doi_validation["is_valid"] or published_metadata(doi, cremail, pyalexemail)['creator'] is None and pdf: 
             print("DOI isn't valid, searching through the PDF for metadata")
             output = asyncio.run(langchain_paper_search(pdf))
             return
         elif not doi_validation["is_valid"] and not pdf: 
             print("Failed to fetch the PDF and Metadata from the DOI. Please fill in your metadata manually or upload a PDF.")
             return
-        elif published_metadata(doi)['creator'] is None and not pdf:
+        elif published_metadata(doi, cremail, pyalexemail)['creator'] is None and not pdf:
             print("Congrats - you have entered the loop that says there are no authors and no pdf")
             pdf = get_oa_pdf(doi)
             if pdf:
@@ -533,11 +510,13 @@ def run(pdf=None, doi=None):
         elif not pdf:
             pdf = get_oa_pdf(doi)
             if pdf:
-                output = [published_metadata(doi)]
+                output = [published_metadata(doi, cremail, pyalexemail)]
                 print("You have entered the yes doi and no pdf loop - and returned the PDF")
             else:
                 print("You've entered the - we haven't found a OA pdf, and we don't have a PDF")
-                output = published_metadata(doi)
+                output = published_metadata(doi, cremail, pyalexemail)
+        else: 
+            output = [published_metadata(doi, cremail, pyalexemail)]
     else: 
         output = asyncio.run(langchain_paper_search(pdf))
 
