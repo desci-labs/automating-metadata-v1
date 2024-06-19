@@ -493,8 +493,11 @@ def run(pdf=None, doi=None, cremail=None, pyalexemail=None):
         #published_metadata(doi, cremail, pyalexemail)['creator']
         if not doi_validation["is_valid"] or published_metadata(doi, cremail, pyalexemail)['creator'] is None and pdf: 
             print("DOI isn't valid, searching through the PDF for metadata")
-            output = asyncio.run(langchain_paper_search(pdf))
-            return
+            if pdf: 
+                output = asyncio.run(langchain_paper_search(pdf))
+                return output
+            else: 
+                return "DOI error. Please use another DOI or include a PDF."
         elif not doi_validation["is_valid"] and not pdf: 
             print("Failed to fetch the PDF and Metadata from the DOI. Please fill in your metadata manually or upload a PDF.")
             return
