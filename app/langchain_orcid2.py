@@ -319,6 +319,7 @@ def published_metadata(doi, cremail, pyalexemail):
         'creator': authors_info,
         'datePublished':pub_date,
         'keywords':keywords,
+        'abstract':abstract,
         'oa_url':oa_url,
         'license':license
     }
@@ -391,7 +392,8 @@ async def langchain_paper_search(pdf_CID):
     queries_schemas_docs = [
         ("Tell me who all the authors of this paper are. Your response should be a comma separated list of the authors of the paper, \
          looking like 'first author name, second author name", document),
-        ("Tell me the title of this paper", document)
+        ("Tell me the title of this paper", document),
+        ("Tell me the abstract of this paper, do not change any of the words only return the abstract as it is written", document)
     ]
 
     tasks = []
@@ -404,11 +406,12 @@ async def langchain_paper_search(pdf_CID):
     summary = await asyncio.gather(*tasks)
 
     # Extracting individual elements from the summary
-    authors, title = summary 
+    authors, title, abstract = summary 
 
     llm_output = {
         "authors": authors,
-        "title": title
+        "title": title,
+        "abstract": abstract
     }
 
     #transform outputs into comma separated lists and then into a structured dictionary of authors. 
@@ -433,12 +436,14 @@ def get_orcid(authors):
             orcid = response["results"][0]["orcid"]
             print(orcid)
             affiliation = response["results"][0]["affiliations"][0]["institution"]["display_name"]
+            ror = response["results"][0]["affiliations"][0]["institution"]["ror"]
             display_name = response["results"][0]["display_name"]  # Updated to use display_name
 
             author_info = {
                 "@id": f"{orcid}",
                 "role": "Person",
                 "affiliation": affiliation,
+                "ror": ror,
                 "name": display_name
             }
 
