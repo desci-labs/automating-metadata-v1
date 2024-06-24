@@ -46,7 +46,9 @@ load_dotenv(find_dotenv())
     return num_tokens"""
 
 def get_pdf_text(pdf_url):
-    ipfs="https://ipfs.desci.com/ipfs/"+pdf_url
+    ipfs_gateway_url =  os.environ.get("IPFS_GATEWAY_URL", "https://ipfs.desci.com/ipfs/")
+    print(ipfs_gateway_url)
+    ipfs= ipfs_gateway_url + pdf_url
   
     response = requests.get(ipfs) 
     
