@@ -20,7 +20,9 @@ EXPOSE 5005
 
 ENV FLASK_APP=server.py
 
+WORKDIR /app
+
 # Define the command to run when the container starts
 # CMD ["flask", "run", "--host=0.0.0.0", "--port=5001"]
 # gunicorn is a production ready web server for flask, with ability to handle multiple requests
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5001", "app:server"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5001", "server:app"]
