@@ -122,7 +122,7 @@ jobs:
           mv kubectl /usr/local/bin
           mkdir $HOME/.kube
           sudo apt-get update
-          echo ${{ secrets.KUBE_CONFIG_DATA }} | base64 --decode > $HOME/.kube/config
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
 
       - name: Deploy to EKS (DEV)
         # uses: steebchen/kubectl@v2.0.0
