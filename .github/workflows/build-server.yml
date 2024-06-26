@@ -6,8 +6,7 @@ on:
   push:
     paths:
       - .github/workflows/**
-      - desci-server/**
-      - desci-contracts/**
+      - app/**
       - Dockerfile
     branches: # array of glob patterns matching against refs/heads. Optional; defaults to all
       - main # triggers on pushes that contain changes
@@ -56,7 +55,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install less
           echo ${{ secrets.KUBE_CONFIG_DATA }} | base64 --decode > $HOME/.kube/config
-          aws sts get-caller-identity
 
       - name: Build and tag the image (DEV)
         if: github.ref == 'refs/heads/develop'
