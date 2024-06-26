@@ -27,5 +27,9 @@ def invoke_script():
         output = run_langchain(pdf, cr_mailto, pyalex_email)
     return jsonify({'output': output})
 
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({'message': 'metadata server healthy'})
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
