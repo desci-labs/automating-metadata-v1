@@ -3,48 +3,14 @@ import os
 # Import your script
 from langchain_orcid2 import run as run_langchain
 from auth import validate_api_key
+
 import logging
-import json
-from logging.config import dictConfig
+from logging_config import setup_logging
 
 # Read environment variables
 cr_mailto = os.getenv('CR_MAILTO')
 pyalex_email = os.getenv('PYALEX_EMAIL')
 
-# Configure logging
-class JsonFormatter(logging.Formatter):
-    def format(self, record):
-        log_record = {
-            'level': record.levelname,
-            'time': self.formatTime(record, self.datefmt),
-            'message': record.getMessage(),
-            'name': record.name,
-            'pathname': record.pathname,
-            'lineno': record.lineno,
-        }
-        if record.exc_info:
-            log_record['exc_info'] = self.formatException(record.exc_info)
-        return json.dumps(log_record)
-
-dictConfig({
-    'version': 1,
-    'formatters': {
-        'json': {
-            '()': JsonFormatter,
-        }
-    },
-    'handlers': {
-        'stdout': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'json',
-            'stream': 'ext://sys.stdout',
-        }
-    },
-    'root': {
-        'level': 'INFO',
-        'handlers': ['stdout']
-    }
-})
 
 app = Flask(__name__)
 
@@ -64,7 +30,7 @@ def log_request_info():
         if len(body) > 1000:  # Limit body size for logging
             body = body[:1000] + '... [truncated]'
 
-        app.logger.info('Request received', extra={
+        app.logger.info('Request', extra={
             'method': request.method,
             'url': request.url,
             'headers': dict(request.headers),
