@@ -201,7 +201,10 @@ def published_metadata(doi, cremail, pyalexemail):
     authors_info = []
 
     for author in r['message']['author']:
-        full_name = author['given'] + ' ' + author['family']
+        if 'given' in author:
+            full_name = author['given'] + ' ' + author['family']
+        else:
+            full_name = author['name']  
         authors_info.append(full_name)
     
     if authors_info:
@@ -211,11 +214,12 @@ def published_metadata(doi, cremail, pyalexemail):
 
 
     refs = []
-    for i in r['message']['reference']:
-        try:
-            refs.append(i['DOI'])
-        except:
-            refs.append(f"{i['key']}, DOI not present")
+    if 'reference' in r['message']:
+        for i in r['message']['reference']:
+            try:
+                refs.append(i['DOI'])
+            except:
+                refs.append(f"{i['key']}, DOI not present")
         
     url_link = r['message']['URL']
         
