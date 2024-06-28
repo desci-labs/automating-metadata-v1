@@ -10,7 +10,7 @@ from logging_config import setup_logging
 # Read environment variables
 cr_mailto = os.getenv('CR_MAILTO')
 pyalex_email = os.getenv('PYALEX_EMAIL')
-
+setup_logging()
 
 app = Flask(__name__)
 
